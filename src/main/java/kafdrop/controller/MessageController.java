@@ -28,6 +28,8 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import com.microsoft.azure.schemaregistry.kafka.avro.KafkaAvroDeserializer;
+import kafdrop.config.AzureSchemaRegistryConfiguration;
 import kafdrop.util.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -67,16 +69,21 @@ public final class MessageController {
   private final MessageFormatProperties keyFormatProperties;
 
   private final SchemaRegistryProperties schemaRegistryProperties;
+  private final AzureSchemaRegistryConfiguration.AzureSchemaRegistryProperties azureSchemaRegistryProperties;
 
   private final ProtobufDescriptorProperties protobufProperties;
 
-  public MessageController(KafkaMonitor kafkaMonitor, MessageInspector messageInspector, MessageFormatProperties messageFormatProperties, MessageFormatProperties keyFormatProperties, SchemaRegistryProperties schemaRegistryProperties, ProtobufDescriptorProperties protobufProperties) {
+  public MessageController(KafkaMonitor kafkaMonitor, MessageInspector messageInspector,
+                           MessageFormatProperties messageFormatProperties, MessageFormatProperties keyFormatProperties,
+                           SchemaRegistryProperties schemaRegistryProperties, ProtobufDescriptorProperties protobufProperties,
+                           AzureSchemaRegistryConfiguration.AzureSchemaRegistryProperties azureSchemaRegistryProperties) {
     this.kafkaMonitor = kafkaMonitor;
     this.messageInspector = messageInspector;
     this.messageFormatProperties = messageFormatProperties;
     this.keyFormatProperties = keyFormatProperties;
     this.schemaRegistryProperties = schemaRegistryProperties;
-    this.protobufProperties = protobufProperties; 
+    this.protobufProperties = protobufProperties;
+    this.azureSchemaRegistryProperties = azureSchemaRegistryProperties;
   }
 
   /**
@@ -185,7 +192,9 @@ public final class MessageController {
    * @return
    */
   private MessageFormat getSelectedMessageFormat(String format) {
-    if ("AVRO".equalsIgnoreCase(format)) {
+    if ("AZURE".equalsIgnoreCase(format)) {
+      return MessageFormat.AZURE;
+    } else if ("AVRO".equalsIgnoreCase(format)) {
       return MessageFormat.AVRO;
     } else if ("PROTOBUF".equalsIgnoreCase(format)) {
       return MessageFormat.PROTOBUF;
@@ -255,7 +264,10 @@ public final class MessageController {
   private MessageDeserializer getDeserializer(String topicName, MessageFormat format, String descFile, String msgTypeName) {
     final MessageDeserializer deserializer;
 
-    if (format == MessageFormat.AVRO) {
+    if (format == MessageFormat.AZURE) {
+      deserializer = new AzureMessageDeserializer(topicName, azureSchemaRegistryProperties);
+    }
+    else if (format == MessageFormat.AVRO) {
       final var schemaRegistryUrl = schemaRegistryProperties.getConnect();
       final var schemaRegistryAuth = schemaRegistryProperties.getAuth();
 

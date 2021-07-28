@@ -2,10 +2,18 @@ package kafdrop.config;
 
 import java.io.*;
 import java.util.*;
+
+import com.azure.identity.ClientSecretCredential;
+import com.azure.identity.ClientSecretCredentialBuilder;
+import com.microsoft.azure.schemaregistry.kafka.avro.KafkaAvroSerializerConfig;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.*;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.*;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.*;
 import org.springframework.stereotype.*;
 
@@ -23,6 +31,13 @@ public final class KafkaConfiguration {
   private String truststoreFile;
   private String propertiesFile;
   private String keystoreFile;
+
+  private String schemaRegistryClientId;
+  private String schemaRegistryTenantId;
+  private String schemaRegistryClientSecret;
+  private String saslJaasConfig;
+  private String registryUrl;
+  private String schemaGroup;
 
   public void applyCommon(Properties properties) {
     properties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, brokerConnect);
@@ -43,7 +58,29 @@ public final class KafkaConfiguration {
       LOG.info("Assigning keystore location to {}", keystoreFile);
       properties.put("ssl.keystore.location", keystoreFile);
     }
+    if (!StringUtils.isEmpty(saslJaasConfig) ) {
+      properties.put("sasl.mechanism", "PLAIN");
+      properties.put("sasl.jaas.config", saslJaasConfig);
+      properties.put("security.protocol", "SASL_SSL");
+    }
+    /*
+    if (!StringUtils.isEmpty(schemaRegistryClientId) && !StringUtils.isEmpty(schemaRegistryTenantId)
+            && !StringUtils.isEmpty(schemaRegistryClientSecret)) {
+      ClientSecretCredential azureCredential = new ClientSecretCredentialBuilder()
+              .clientId(schemaRegistryClientId).tenantId(schemaRegistryTenantId)
+              .clientSecret(schemaRegistryClientSecret).build();
+      properties.put(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_CREDENTIAL_CONFIG, azureCredential);
 
+
+      properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
+      // Schema Registry configs
+      properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, com.microsoft.azure.schemaregistry.kafka.avro.KafkaAvroSerializer.class);
+      properties.put(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, registryUrl);
+      properties.put(KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS_CONFIG, true);
+      properties.put(KafkaAvroSerializerConfig.SCHEMA_GROUP_CONFIG, schemaGroup);
+    }
+   */
     LOG.info("Checking properties file {}", propertiesFile);
     final var propertiesFile = new File(this.propertiesFile);
     if (propertiesFile.isFile()) {

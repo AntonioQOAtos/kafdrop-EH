@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT:9000}
+  port: ${SERVER_PORT:8080}
   servlet:
     context-path: /
   error:
@@ -21,16 +21,40 @@ management:
       base-path: /actuator
       exposure.include: "*"
   server:
-    port: 9000
+    port: ${SERVER_PORT:8080}
 
 kafdrop.monitor:
   clientId: Kafdrop
 
+message:
+  format: AZURE
+
 kafka:
-  brokerConnect: localhost:9092
+  brokerConnect: ${BOOTSTRAP_SERVERS}
   isSecured: false
   saslMechanism: "PLAIN"
   securityProtocol: "SASL_PLAINTEXT"
   truststoreFile: "${KAFKA_TRUSTSTORE_FILE:kafka.truststore.jks}"
   propertiesFile : "${KAFKA_PROPERTIES_FILE:kafka.properties}"
   keystoreFile: "${KAFKA_KEYSTORE_FILE:kafka.keystore.jks}"
+  schemaRegistryClientId: ${SCHEMA_REGISTER_CLIENT_ID}
+  schemaRegistryTenantId: ${TENANT_ID}
+  schemaRegistryClientSecret: ${SCHEMA_REGISTER_CLIENT_SECRET}
+  saslJaasConfig: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="${KAFKA_JAAS_CONNECTION_STRING}";'
+  registryUrl: ${SCHEMA_REGISTER_URL}
+  schemaGroup: ${SCHEMA_GROUP}
+
+azure:
+  brokerConnect: ${BOOTSTRAP_SERVERS}
+  isSecured: false
+  saslMechanism: "PLAIN"
+  securityProtocol: "SASL_PLAINTEXT"
+  truststoreFile: "${KAFKA_TRUSTSTORE_FILE:kafka.truststore.jks}"
+  propertiesFile : "${KAFKA_PROPERTIES_FILE:kafka.properties}"
+  keystoreFile: "${KAFKA_KEYSTORE_FILE:kafka.keystore.jks}"
+  schemaRegistryClientId: ${SCHEMA_REGISTER_CLIENT_ID}
+  schemaRegistryTenantId: ${TENANT_ID}
+  schemaRegistryClientSecret: ${SCHEMA_REGISTER_CLIENT_SECRET}
+  saslJaasConfig: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="${KAFKA_JAAS_CONNECTION_STRING}";'
+  registryUrl: ${SCHEMA_REGISTER_URL}
+  schemaGroup: ${SCHEMA_GROUP}
