@@ -1,16 +1,18 @@
 package kafdrop.util;
 
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 
 public class ProtobufSchemaRegistryMessageDeserializer implements MessageDeserializer {
 
   private final String topicName;
   private final KafkaProtobufDeserializer deserializer;
 
-  public ProtobufSchemaRegistryMessageDeserializer(String topicName, String schemaRegistryUrl, String schemaRegistryAuth) {
+  public ProtobufSchemaRegistryMessageDeserializer(String topicName, String schemaRegistryUrl,
+                                                   String schemaRegistryAuth) {
     this.topicName = topicName;
     this.deserializer = getDeserializer(schemaRegistryUrl, schemaRegistryAuth);
   }
@@ -24,10 +26,10 @@ public class ProtobufSchemaRegistryMessageDeserializer implements MessageDeseria
 
   private static KafkaProtobufDeserializer getDeserializer(String schemaRegistryUrl, String schemaRegistryAuth) {
     final var config = new HashMap<String, Object>();
-    config.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+    config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
     if (schemaRegistryAuth != null) {
-      config.put(AbstractKafkaAvroSerDeConfig.BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
-      config.put(AbstractKafkaAvroSerDeConfig.USER_INFO_CONFIG, schemaRegistryAuth);
+      config.put(AbstractKafkaSchemaSerDeConfig.BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
+      config.put(AbstractKafkaSchemaSerDeConfig.USER_INFO_CONFIG, schemaRegistryAuth);
     }
     final var kafkaAvroDeserializer = new KafkaProtobufDeserializer<>();
     kafkaAvroDeserializer.configure(config, false);

@@ -25,7 +25,6 @@ public final class KafkaConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(KafkaConfiguration.class);
 
   private String brokerConnect;
-  private Boolean isSecured = false;
   private String saslMechanism;
   private String securityProtocol;
   private String truststoreFile;
@@ -41,10 +40,9 @@ public final class KafkaConfiguration {
 
   public void applyCommon(Properties properties) {
     properties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, brokerConnect);
-    if (isSecured) {
-      LOG.warn("The 'isSecured' property is deprecated; consult README.md on the preferred way to configure security");
+
+    if (securityProtocol.equals("SSL")) {
       properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
-      properties.put(SaslConfigs.SASL_MECHANISM, saslMechanism);
     }
 
     LOG.info("Checking truststore file {}", truststoreFile);
